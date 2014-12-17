@@ -2,17 +2,19 @@
 //
 
 #include "stdafx.h"
-#include "Dock.h"
 #include "SettingDlg.h"
-#include "DockDlg.h"
 
 #include <vector>
+
+#include "Dock.h"
+#include "DockDlg.h"
+#include "Preference.h"
 
 IMPLEMENT_DYNAMIC(CSettingDlg, CDialog)
 
 CSettingDlg::CSettingDlg(CWnd *pParent, int systemShortcutBitmap)
     : CDialog(CSettingDlg::IDD, pParent)
-    , m_pParentDlg(pParent)
+    , dlg_parent_(pParent)
     , m_systemShortcutBitmap(systemShortcutBitmap)
 {
 
@@ -25,21 +27,24 @@ CSettingDlg::~CSettingDlg()
 void CSettingDlg::DoDataExchange(CDataExchange *pDX)
 {
     CDialog::DoDataExchange(pDX);
-    DDX_Control(pDX, IDC_CHECK1, m_startupCheckBoxBtn);
-    DDX_Control(pDX, IDC_CHECK_ST_0, m_CheckBoxBtnMyComputer);
-    DDX_Control(pDX, IDC_CHECK_ST_1, m_CheckBoxBtnNetWork);
-    DDX_Control(pDX, IDC_CHECK_ST_2, m_CheckBoxBtnControlPanel);
-    DDX_Control(pDX, IDC_CHECK_ST_3, m_CheckBoxBtnTimeDate);
-    DDX_Control(pDX, IDC_CHECK_ST_4, m_CheckBoxBtnRecycle);
-    DDX_Control(pDX, IDC_CHECK_ST_5, m_CheckBoxBtnMyDocument);
-    DDX_Control(pDX, IDC_CHECK_ST_6, m_CheckBoxBtnMyMusic);
-    DDX_Control(pDX, IDC_CHECK_SELECT_ALL, m_CheckBoxBtnSelectAll);
-    DDX_Control(pDX, IDC_CHECK_UNSELECT_ALL, m_CheckBoxBtnUnSelectAll);
+    DDX_Control(pDX, IDC_CHECK_STARTUP,         checkbox_startup_);
+    DDX_Control(pDX, IDC_CHECK_SHOW_ALWAYS,     checkbox_always_show);
+    DDX_Control(pDX, IDC_CHECK_DELETE_ALERT,    checkbox_alert_before_del_);
+    
+    DDX_Control(pDX, IDC_CHECK_ST_0,            m_CheckBoxBtnMyComputer);
+    DDX_Control(pDX, IDC_CHECK_ST_1,            m_CheckBoxBtnNetWork);
+    DDX_Control(pDX, IDC_CHECK_ST_2,            m_CheckBoxBtnControlPanel);
+    DDX_Control(pDX, IDC_CHECK_ST_3,            m_CheckBoxBtnTimeDate);
+    DDX_Control(pDX, IDC_CHECK_ST_4,            m_CheckBoxBtnRecycle);
+    DDX_Control(pDX, IDC_CHECK_ST_5,            m_CheckBoxBtnMyDocument);
+    DDX_Control(pDX, IDC_CHECK_ST_6,            m_CheckBoxBtnMyMusic);
+    DDX_Control(pDX, IDC_CHECK_SELECT_ALL,      m_CheckBoxBtnSelectAll);
+    DDX_Control(pDX, IDC_CHECK_UNSELECT_ALL,    m_CheckBoxBtnUnSelectAll);
 }
 
 
 BEGIN_MESSAGE_MAP(CSettingDlg, CDialog)
-    ON_BN_CLICKED(IDC_BUTTON1, &CSettingDlg::OnBnClickedButton1)
+    ON_BN_CLICKED(IDC_BUTTON1, &CSettingDlg::OnBnClickedButtonOK)
     ON_BN_CLICKED(IDC_CHECK_SELECT_ALL, &CSettingDlg::OnBnClickedSelectAll)
     ON_BN_CLICKED(IDC_CHECK_UNSELECT_ALL, &CSettingDlg::OnBnClickedUnSelectAll)
     ON_WM_PAINT()
@@ -51,7 +56,6 @@ void CSettingDlg::OnBnClickedSelectAll()
 {
     if (BST_CHECKED == m_CheckBoxBtnSelectAll.GetCheck())
     {
-        m_startupCheckBoxBtn.SetCheck(BST_CHECKED);
         m_CheckBoxBtnMyComputer.SetCheck(BST_CHECKED);
         m_CheckBoxBtnNetWork.SetCheck(BST_CHECKED);
         m_CheckBoxBtnControlPanel.SetCheck(BST_CHECKED);
@@ -68,7 +72,6 @@ void CSettingDlg::OnBnClickedUnSelectAll()
 {
     if (BST_CHECKED == m_CheckBoxBtnUnSelectAll.GetCheck())
     {
-        m_startupCheckBoxBtn.SetCheck(BST_UNCHECKED);
         m_CheckBoxBtnMyComputer.SetCheck(BST_UNCHECKED);
         m_CheckBoxBtnNetWork.SetCheck(BST_UNCHECKED);
         m_CheckBoxBtnControlPanel.SetCheck(BST_UNCHECKED);
@@ -81,9 +84,9 @@ void CSettingDlg::OnBnClickedUnSelectAll()
 }
 
 
-void CSettingDlg::OnBnClickedButton1()
+void CSettingDlg::OnBnClickedButtonOK()
 {
-    if (BST_CHECKED == m_startupCheckBoxBtn.GetCheck())
+    if (BST_CHECKED == checkbox_startup_.GetCheck())
     {
         TCHAR szCurrentDir[MAX_PATH];
         ::GetModuleFileName(NULL, szCurrentDir, MAX_PATH);
@@ -103,10 +106,8 @@ void CSettingDlg::OnBnClickedButton1()
         {
             //TODO
         }
-
-        WritePrivateProfileString(L"General", L"StartupWithSystem", _T("1"), L"c:\\WXH.ini");
     }
-    else if (BST_UNCHECKED == m_startupCheckBoxBtn.GetCheck())
+    else if (BST_UNCHECKED == checkbox_startup_.GetCheck())
     {
         HKEY hkey = NULL;
         int rt = 0;
@@ -120,9 +121,12 @@ void CSettingDlg::OnBnClickedButton1()
         }
 
         RegDeleteValue(hkey, _T("wxhLauncher"));
-
-        WritePrivateProfileString(L"General", L"StartupWithSystem", _T("0"), L"c:\\WXH.ini");
     }
+
+    Preference::startup             = checkbox_startup_.GetCheck()? 1: 0;
+    Preference::alwaysShow          = checkbox_always_show.GetCheck()? 1: 0;
+    Preference::alert_before_delete = checkbox_alert_before_del_.GetCheck()? 1: 0;
+    Preference::UpdateSetting();
 
     HandleSystemShortcutSetting();
 
@@ -133,10 +137,16 @@ void CSettingDlg::OnBnClickedButton1()
 BOOL CSettingDlg::OnInitDialog()
 {
     CDialog::OnInitDialog();
+
     // open .ini file
-    TCHAR szIniPath[MAX_PATH] = L"c:\\WXH.ini";
-    int startUp = GetPrivateProfileInt(L"General", L"StartupWithSystem", 1, szIniPath);
-    m_startupCheckBoxBtn.SetCheck(startUp == 1 ? BST_CHECKED : BST_UNCHECKED);
+    int startUp = GetPrivateProfileInt(L"General", L"StartupWithSystem", 1, CONFIG_INI_FILE);
+    checkbox_startup_.SetCheck(startUp == 1 ? BST_CHECKED : BST_UNCHECKED);
+
+    int alwaysShow = GetPrivateProfileInt(L"General", L"AlwaysShow", 1, CONFIG_INI_FILE);
+    checkbox_always_show.SetCheck(alwaysShow == 1 ? BST_CHECKED : BST_UNCHECKED);
+
+    int alert_before_delete = GetPrivateProfileInt(L"General", L"AlertBeforeDelete", 1, CONFIG_INI_FILE);
+    checkbox_alert_before_del_.SetCheck(alert_before_delete == 1 ? BST_CHECKED : BST_UNCHECKED);
 
     InitSystemShortcutStatus(m_systemShortcutBitmap);
 
@@ -194,7 +204,7 @@ void CSettingDlg::HandleSystemShortcutSetting()
         systemShortBitMap |= (0x00000001 << 6);
     }
 
-    CDockDlg *pDlg = (CDockDlg *)m_pParentDlg;
+    CDockDlg *pDlg = (CDockDlg *)dlg_parent_;
     pDlg->UpdateSystemIconList(systemShortBitMap);
 }
 
@@ -256,27 +266,9 @@ HBRUSH CSettingDlg::OnCtlColor(CDC *pDC, CWnd *pWnd, UINT nCtlColor)
 {
     HBRUSH hbr = CDialog::OnCtlColor(pDC, pWnd, nCtlColor);
 
-    //switch(nCtlColor)
-    //{
-    //case CTLCOLOR_STATIC:
-    //    pDC->SetTextColor( RGB(255,0,0) );
-    //    //pDC->SetBkColor( RGB(0,255,0) );
-    //    break;
-    //case CTLCOLOR_BTN:
-    //    pDC->SetTextColor( RGB(255,0,0) );
-    //    //pDC->SetBkColor( RGB(0,255,0) );
-    //    break;
-    //case CTLCOLOR_STATIC:
-    //    pDC->SetTextColor( RGB(255,0,0) );
-    //    break;
-    //case CTLCOLOR_DLG:
-    //    break;
-    //}
-
-
     int iID = pWnd->GetDlgCtrlID();
-
-    if (IDC_CHECK1 == iID ||
+    if (IDC_CHECK_SHOW_ALWAYS == iID ||
+        IDC_CHECK_STARTUP == iID ||
         IDC_CHECK_ST_0 == iID ||
         IDC_CHECK_ST_1 == iID ||
         IDC_CHECK_ST_2 == iID ||

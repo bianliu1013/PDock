@@ -24,3 +24,6 @@
 #define SHOTCUT_SHOW_MARGIN_TOP                     3
 
 
+#define CONFIG_INI_FILE                             (L"c:\\WXH.ini")
+
+

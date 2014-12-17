@@ -1,0 +1,7 @@
+*.obj
+*.pch
+*.ncb
+*.suo
+*.ilk
+*.htm
+*.idb

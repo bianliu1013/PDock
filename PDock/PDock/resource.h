@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by XbuttonTest.rc
+// Used by PDock.rc
 //
 #define IDD_XBUTTONTEST_DIALOG          102
 #define IDD_PROPPAGE_LARGE              107
@@ -43,7 +43,7 @@
 #define IDC_BUTTON5                     1004
 #define IDC_STATIC_PIC                  1006
 #define IDC_STATIC_SC                   1007
-#define IDC_CHECK1                      1008
+#define IDC_CHECK_STARTUP               1008
 #define IDC_CHECK_ST_0                  1009
 #define IDC_CHECK_ST_1                  1010
 #define IDC_CHECK_ST_2                  1011
@@ -53,9 +53,12 @@
 #define IDC_CHECK_UNSELECT_ALL          1015
 #define IDC_CHECK_ST_5                  1016
 #define IDC_CHECK_ST_6                  1017
+#define IDC_CHECK_SHOW_ALWAYS           1018
+#define IDC_CHECK_STARTUP2              1019
+#define IDC_CHECK_DELETE_ALERT          1019
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        174

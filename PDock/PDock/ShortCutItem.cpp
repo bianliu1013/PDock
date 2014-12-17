@@ -17,7 +17,7 @@ extern HBITMAP IconToBitmap(HICON hIcon, SIZE *pTargetSize);
 
 BEGIN_MESSAGE_MAP(ShortCutItem, CWnd)
     ON_WM_MOUSEMOVE()
-    //ON_WM_MOUSEHOVER()  // 此消息系统并不会给我们发送
+    //ON_WM_MOUSEHOVER() 
     //ON_WM_MOUSELEAVE()
     ON_WM_LBUTTONDOWN()
     ON_WM_LBUTTONUP()
@@ -89,8 +89,8 @@ bool ShortCutItem::Create(CWnd *pParent, CRect rc, CString text, DWORD id /* = 0
     }
 
     // color for tooltip doesn't work, why? TODO
-    m_pToolTip->SetTipTextColor(RGB(67, 110, 238));
-    m_pToolTip->SetTipBkColor(RGB(67, 110, 238));
+    //m_pToolTip->SetTipTextColor(RGB(67, 110, 238));
+    //m_pToolTip->SetTipBkColor(RGB(67, 110, 238));
     m_pToolTip->SetDelayTime(TTDT_INITIAL, 100);
 
     if (m_pToolTip->AddTool(this, m_pFilePath))

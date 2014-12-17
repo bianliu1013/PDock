@@ -2,6 +2,8 @@
 #include "afxwin.h"
 
 
+#include "resource.h"
+
 // CSettingDlg dialog
 
 class CSettingDlg : public CDialog
@@ -23,14 +25,17 @@ protected:
 
     DECLARE_MESSAGE_MAP()
 public:
-    afx_msg void OnBnClickedButton1();
+    afx_msg void OnBnClickedButtonOK();
     afx_msg void OnBnClickedSelectAll();
     afx_msg void OnBnClickedUnSelectAll();
     virtual BOOL OnInitDialog();
 
 private:
-    CWnd    *m_pParentDlg;
-    CButton m_startupCheckBoxBtn;
+    CWnd*   dlg_parent_;
+    CButton checkbox_startup_;
+    CButton checkbox_always_show;
+    CButton checkbox_alert_before_del_;
+
     CButton m_CheckBoxBtnMyComputer;
     CButton m_CheckBoxBtnNetWork;
     CButton m_CheckBoxBtnControlPanel;

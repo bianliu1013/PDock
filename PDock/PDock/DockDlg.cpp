@@ -8,6 +8,7 @@
 
 #include "DragDialogex.h"
 #include "tools.h"
+#include "Preference.h"
 
 
 #ifdef _DEBUG
@@ -86,6 +87,8 @@ void CDockDlg::UpdatePanelSize()
 BOOL CDockDlg::OnInitDialog()
 {
     CDialog::OnInitDialog();
+
+    Preference::Init();
 
     // Set the icon for this dialog.  The framework does this automatically
     //  when the application's main window is not a dialog
@@ -263,32 +266,47 @@ bool CDockDlg::EnoughMouseMove(const CPoint &pt)
 }
 
 
+
+bool CDockDlg::IsMouseEnterToActiveArea() const
+{
+    CPoint pt = GetMousePoint();
+    if (pt.x >= m_dockPanelLeft && 
+        pt.x <= (m_dockPanelLeft + m_dockPanelWidth)) 
+    {
+        if (pt.y == 0 || 
+           (pt.y < 0 && pt.y > -10)  // -10 < y < 0 is for extend screen (on top of main screen)
+           )
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+
 void CDockDlg::OnTimer(UINT_PTR nIDEvent)
 {
     static int s_lastTouchingIndex = -1;
 
-    if (nIDEvent == TIMER_HIDE)
+    if (nIDEvent == TIMER_HIDE && !Preference::alwaysShow)
     {
-        CPoint pt = GetMousePoint();
         static int iCountHide = 0;
 
-        if (pt.x >= m_dockPanelLeft && pt.x <= (m_dockPanelLeft + m_dockPanelWidth) && pt.y == 0)
+        if (IsMouseEnterToActiveArea()) 
         {
-            iCountHide++;
-
-            if (iCountHide == 2)
-            {
+            if (++iCountHide == 2) {
                 KillTimer(TIMER_HIDE);
                 UpdatePanelSize();
                 this->ShowWindow(SW_SHOWNORMAL);
             }
         }
-        else
-        {
+        else {
             iCountHide = 0;
         }
     }
-    else if (nIDEvent == TIMER_SHOW)
+    else if (nIDEvent == TIMER_SHOW && !Preference::alwaysShow)
     {
         //Check mouse coordinates and hide if the mouse haven't been in the window for a few seconds
         RECT lpRect;
@@ -297,18 +315,13 @@ void CDockDlg::OnTimer(UINT_PTR nIDEvent)
         ::GetCursorPos(&pt);
         static int iCountShow = -5;
 
-        if (PtInRect(&lpRect, pt) == FALSE && !m_bDraggingImage) // when dragging shortcut, not hide
-        {
-            iCountShow++;
-
-            if (iCountShow == 1)
-            {
+        if (PtInRect(&lpRect, pt) == FALSE && !m_bDraggingImage){ // when dragging shortcut, not hide
+            if (++iCountShow == 1) {
                 this->ShowWindow(SW_HIDE);
                 SetTimer(TIMER_HIDE, TIME_ELAPSE_HIDE, NULL);
             }
         }
-        else
-        {
+        else {
             iCountShow = 0;
         }
     }
@@ -335,7 +348,6 @@ void CDockDlg::OnTimer(UINT_PTR nIDEvent)
         {
             int j = ButtonIndexMouseOn();
 
-            //if (j >= 0 && s_lastTouchingIndex != j && EnoughMouseMove(point))  // roaming
             if (j >= 0 && EnoughMouseMove(point))  // roaming
             {
                 s_lastTouchingIndex = j;
@@ -371,19 +383,25 @@ void CDockDlg::OnClose()
     m_shortManager.SaveShortcutToIniFile();
 
     DeleteObject(m_hBitmap);//not really need but what the heck.
-    KillTimer(1);
+    KillTimer(TIMER_HIDE);
+    KillTimer(TIMER_SHOW);
+    KillTimer(TIMER_MOVE);
     CDialog::OnClose();
 }
 
 void CDockDlg::OnBnClickedOk()
 {
-    KillTimer(1);
+    KillTimer(TIMER_HIDE);
+    KillTimer(TIMER_SHOW);
+    KillTimer(TIMER_MOVE);
     OnOK();
 }
 
 void CDockDlg::OnBnClickedCancel()
 {
-    KillTimer(1);
+    KillTimer(TIMER_HIDE);
+    KillTimer(TIMER_SHOW);
+    KillTimer(TIMER_MOVE);
     OnCancel();
 }
 
@@ -525,9 +543,13 @@ void CDockDlg::OnReleaseDraggingAction()
     if (!rc2.PtInRect(pt))
     {
         // if cursor is out of dock panel, to remove shortcut
-        if (m_shortManager.CanRemoveDraggingShortcut() &&
-            IDOK == MessageBox(_T("Remove this shortcut?"), _T(""), MB_OKCANCEL))
+        if (m_shortManager.CanRemoveDraggingShortcut())
         {
+            if(Preference::alert_before_delete && IDCANCEL == MessageBox(_T("Remove this shortcut?"), _T(""), MB_OKCANCEL))
+            {
+                return;
+            }
+
             m_shortManager.RemoveDraggingShortcut();
             m_shortManager.SaveShortcutToIniFile();
 

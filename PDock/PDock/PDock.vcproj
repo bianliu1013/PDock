@@ -202,6 +202,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Preference.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\SettingDlg.cpp"
 				>
 			</File>
@@ -281,6 +285,10 @@
 			</File>
 			<File
 				RelativePath=".\LimitSingleInstance.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Preference.h"
 				>
 			</File>
 			<File

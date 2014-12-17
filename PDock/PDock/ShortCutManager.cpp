@@ -151,8 +151,7 @@ int ShortCutManager::GetSystemIconMaxNumberSupport() const
 void ShortCutManager::LoadReservedShortcut()
 {
     // open .ini file
-    TCHAR szIniPath[MAX_PATH] = L"c:\\WXH.ini";
-    int pathNumber = GetPrivateProfileInt(L"ShortCutNumber", L"Number", 0, szIniPath);
+    int pathNumber = GetPrivateProfileInt(L"ShortCutNumber", L"Number", 0, CONFIG_INI_FILE);
 
     int i = 0;
     int systemIconBitMap = 0;
@@ -163,7 +162,7 @@ void ShortCutManager::LoadReservedShortcut()
         TCHAR szPath[MAX_PATH] = {0};
         TCHAR szPathSeq[10] = {0};
         _stprintf(szPathSeq, _T("%s%02d"), _T("Path"), i);
-        GetPrivateProfileString(L"ShortCut", szPathSeq, L"NULL", szPath, MAX_PATH, szIniPath);
+        GetPrivateProfileString(L"ShortCut", szPathSeq, L"NULL", szPath, MAX_PATH, CONFIG_INI_FILE);
 
         CString str(szPath);
 
@@ -202,11 +201,10 @@ Path05=C:\Users\19007180\Desktop\PDock\PDock.sln
 */
 void ShortCutManager::SaveShortcutToIniFile()
 {
-    TCHAR szIniPath[MAX_PATH] = L"c:\\WXH.ini";
     int number = m_shortcutList.size();
     CString strNumver;
     strNumver.Format(_T("%d"), number);
-    WritePrivateProfileString(L"ShortCutNumber", L"Number", strNumver, szIniPath);
+    WritePrivateProfileString(L"ShortCutNumber", L"Number", strNumver, CONFIG_INI_FILE);
 
     int i = 0;
     std::vector<ShortCutItem *>::iterator itor = m_shortcutList.begin();
@@ -219,7 +217,7 @@ void ShortCutManager::SaveShortcutToIniFile()
         {
             TCHAR szPathSeq[10] = {0};
             _stprintf(szPathSeq, _T("%s%02d"), _T("Path"), i);
-            WritePrivateProfileString(L"ShortCut", szPathSeq, p->GetPath(), szIniPath);
+            WritePrivateProfileString(L"ShortCut", szPathSeq, p->GetPath(), CONFIG_INI_FILE);
         }
         else  // system ICON
         {
@@ -227,7 +225,7 @@ void ShortCutManager::SaveShortcutToIniFile()
             _stprintf(szPathSeq, _T("%s%02d"), _T("Path"), i);
             CString str;
             str.Format(_T("%s_%d"), _T("system"), p->GetSystemIconIndex());
-            WritePrivateProfileString(L"ShortCut", szPathSeq, str, szIniPath);
+            WritePrivateProfileString(L"ShortCut", szPathSeq, str, CONFIG_INI_FILE);
         }
 
         i++;

@@ -66,6 +66,7 @@ public:
 private:
     void OnPostEraseBkgnd(CDC *pDC);
     void UpdateLabelPosition(int selectedIndex);
+    bool IsMouseEnterToActiveArea() const;
 
     void OnReleaseDraggingAction();
     void DrawMarkLine(const CPoint &pt);
