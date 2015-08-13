@@ -12,6 +12,7 @@ extern HBITMAP ConvertIconToBitmap(HICON hIcon);
 ShortCutManager::ShortCutManager()
     : m_pDraggingCutItem(NULL)
     , m_layout(this)
+    , last_index_selected_(0)
 {
 }
 
@@ -314,6 +315,12 @@ void ShortCutManager::LayOutShortCuts(const int &dockPanelWidth, const int &dock
 }
 
 
+void ShortCutManager::LayOutShortCutsByShotCut(const int &dockPanelWidth, const int &dockPanelHeight, int short_cut_index)
+{
+    m_layout.LayOutShortCutsByShotCut(dockPanelWidth, dockPanelHeight, short_cut_index);
+}
+
+
 void ShortCutManager::RemoveShortcut(int index)
 {
     int i = 0;
@@ -451,6 +458,8 @@ void ShortCutManager::OnShortCurtClicked(ShortCutItem *pShortCut)
         TCHAR *pFilePath = pShortCut->GetPath();
         ShellExecute(NULL, _T("open"), pFilePath, _T(""), _T(""), SW_SHOW );
     }
+
+    last_index_selected_ = indexSelected;
 }
 
 
@@ -508,6 +517,25 @@ void ShortCutManager::SettleDownDraggingCutItem(int index)
     }
 }
 
+
+int ShortCutManager::GetShotcutIndexByShotcut(int shot_key)
+{
+    if (-1 == last_index_selected_)
+    {
+        last_index_selected_ = 0;
+    } else if (-1 == shot_key) {
+        last_index_selected_ = (--last_index_selected_) < 0 ? m_shortcutList.size() - 1 : last_index_selected_;
+    } else if (1 == shot_key) {
+        last_index_selected_ = (++last_index_selected_) >= m_shortcutList.size() ? 0: last_index_selected_;
+    }
+    return last_index_selected_;
+}
+
+
+void ShortCutManager::OpenShotcutByShotkey()
+{
+    OnShortCurtClicked(m_shortcutList[last_index_selected_]);
+}
 
 bool ShortCutManager::CanAddShortCut(const int &dockPanelWidth, const int &dockPanelHeight, int shortcutCount)
 {

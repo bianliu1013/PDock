@@ -63,6 +63,7 @@ public:
     void LayOutShortCuts(const int &dockPanelWidth, const int &dockPanelHeight);
     void LayOutShortCutsTouching(const int &dockPanelWidth, const int &dockPanelHeight, const CPoint &point);
     void LayOutShortCutsDragging(const int &dockPanelWidth, const int &dockPanelHeight, const CPoint &point, int draggingIndex);
+    void LayOutShortCutsByShotCut(const int &dockPanelWidth, const int &dockPanelHeight, int short_cut_index);
 
     void SaveShortcutToIniFile();
     void DragShortcutItemFromList(int index);
@@ -77,6 +78,9 @@ public:
         return m_systemIconBitMap;
     }
 
+    int GetShotcutIndexByShotcut(int shot_key);  // 0 - default, -1, left, 1, right
+    void OpenShotcutByShotkey();  // default
+
 private:
     void initDefaultIcons();
     void LoadReservedShortcut();
@@ -86,12 +90,14 @@ private:
 private:
     friend class ShortCutLayout;
 
-    CDialog                    *m_dockPanelDlg;
-    IShortCutManagerListener   *m_pListener;
-    std::vector<ShortCutItem *>  m_shortcutList;
+    CDialog*                    m_dockPanelDlg;
+    IShortCutManagerListener*   m_pListener;
+    std::vector<ShortCutItem*>  m_shortcutList;
     HICON                       m_initIcon[SYSTEM_SHORTCUT_NUM];
     CString                     m_initIconTitle[SYSTEM_SHORTCUT_NUM];
-    ShortCutItem               *m_pDraggingCutItem;  // temp value, save the object that dragging
+    ShortCutItem*               m_pDraggingCutItem;  // temp value, save the object that dragging
     ShortCutLayout              m_layout;
     int                         m_systemIconBitMap;
+
+    int                         last_index_selected_;
 };

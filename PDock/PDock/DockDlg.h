@@ -69,12 +69,15 @@ private:
     bool IsMouseEnterToActiveArea() const;
 
     void OnReleaseDraggingAction();
-    void DrawMarkLine(const CPoint &pt);
-    void UnDrawMarkLine();
     void PrepareDraggingDialog();
     const CPoint &GetMousePoint() const;  // client
     void UpdateLastMousePosition(const CPoint &pt);
     bool EnoughMouseMove(const CPoint &pt);
+
+    void showHideWindowFromShotcut();
+    void ChooseByShotcut(int key);
+
+    void registerHotKey();
 
 public:
     //    afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
@@ -99,7 +102,7 @@ private:
     int                     m_markLineY;
 
     ShortCutManager         m_shortManager;
-    CDragDialogEx          *m_pDragDialog;
+    CDragDialogEx*          m_pDragDialog;
     CPoint                  m_pPointBeginDrag;
 
     POINT                   m_lastPoint;

@@ -26,6 +26,8 @@ extern HBITMAP ConvertIconToBitmap(HICON hIcon);
 #define TIME_ELAPSE_SHOW    150
 #define TIME_ELAPSE_MOVE    50
 
+#define IDH_HOT1            4001  // hot key,  ALT f1
+
 //#define DOCK_PANEL_COLOR RGB(232, 232, 232)
 //#define DOCK_PANEL_COLOR RGB(55, 55, 55)
 #define DOCK_PANEL_COLOR RGB(255, 128, 128)
@@ -138,6 +140,8 @@ BOOL CDockDlg::OnInitDialog()
     m_bDraggingImage = false;
     m_buttonIndexDragging = -1;
 
+    registerHotKey();
+
     return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -225,26 +229,6 @@ void CDockDlg::UpdateLabelPosition(int selectedIndex)
 #endif
 }
 
-
-void CDockDlg::DrawMarkLine(const CPoint &pt)
-{
-    //::GetCursorPos(&pt);
-    //int j = ButtonIndexMouseOn();
-    if (-1 != m_buttonIndexDragging)
-    {
-        m_markLineX = pt.x;
-        m_markLineY = 0;
-        Invalidate(false);
-    }
-}
-
-
-void CDockDlg::UnDrawMarkLine()
-{
-    m_markLineX = -1;
-    m_markLineY = -1;
-}
-
 const CPoint &CDockDlg::GetMousePoint() const
 {
     static CPoint mouse_pt;
@@ -265,6 +249,53 @@ bool CDockDlg::EnoughMouseMove(const CPoint &pt)
     return abs(m_lastPoint.x - pt.x) > 3 || abs(m_lastPoint.y - pt.y) > 3;
 }
 
+
+
+void CDockDlg::showHideWindowFromShotcut()
+{
+    static bool bShowWindow = false;
+
+    if (!bShowWindow)
+    {
+        KillTimer(TIMER_HIDE);
+        UpdatePanelSize();
+        this->ShowWindow(SW_SHOWNORMAL);
+        bShowWindow = true;
+        int shot_index = m_shortManager.GetShotcutIndexByShotcut(0);
+        m_shortManager.LayOutShortCutsByShotCut(m_dockPanelWidth, m_dockPanelHeight, shot_index);
+    }
+    else
+    {
+        this->ShowWindow(SW_HIDE);
+        SetTimer(TIMER_HIDE, TIME_ELAPSE_HIDE, NULL);
+        bShowWindow = false;
+    }
+}
+
+
+
+void CDockDlg::ChooseByShotcut(int key)
+{
+    int shot_key = 0;
+    if (0x4a == key)  // j
+    {
+        shot_key = 1;
+    }
+    else if (0x46 == key)
+    {
+        shot_key = -1;
+    }
+
+    int shot_index = m_shortManager.GetShotcutIndexByShotcut(shot_key);
+    m_shortManager.LayOutShortCutsByShotCut(m_dockPanelWidth, m_dockPanelHeight, shot_index);
+}
+
+
+void CDockDlg::registerHotKey()
+{
+    RegisterHotKey(this->GetSafeHwnd(), IDH_HOT1, MOD_ALT, VK_RETURN);
+    //RegisterHotKey(this->GetSafeHwnd(), IDH_HOT1, MOD_ALT, MOD_ALT);
+}
 
 
 bool CDockDlg::IsMouseEnterToActiveArea() const
@@ -664,6 +695,31 @@ BOOL CDockDlg::PreTranslateMessage(MSG *pMsg)
     else if (pMsg->message == WM_LBUTTONUP)
     {
         PreHandleMouseLButtonUp();
+    }
+    else if (pMsg->message == WM_HOTKEY)
+    {
+        switch (pMsg->wParam)
+        {
+        case IDH_HOT1:
+            showHideWindowFromShotcut();
+            return TRUE;
+        }
+    }
+    else if (pMsg->message == WM_KEYDOWN)
+    {
+        switch (pMsg->wParam)
+        {
+        case 0x46:
+            ChooseByShotcut(0x46);
+            break;
+        case 0x4a:
+            ChooseByShotcut(0x4a);
+            break;
+        case VK_RETURN:
+            m_shortManager.OpenShotcutByShotkey();
+            break;
+        }
+        return TRUE;
     }
 
     return CDialog::PreTranslateMessage(pMsg);

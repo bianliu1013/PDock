@@ -14,11 +14,6 @@ ShortCutLayout::~ShortCutLayout(void)
 {
 }
 
-void ShortCutLayout::ReLayout(CPoint mousePt, int draggingIndex)
-{
-
-}
-
 
 int ShortCutLayout::GetIndexMouseOn(const CPoint &mousePt, /*out*/ float* percent) const
 {
@@ -115,6 +110,7 @@ void ShortCutLayout::LayOutShortCuts(const int &dockPanelWidth, const int &dockP
         m_shortCutRect[i].top = SHOTCUT_SHOW_MARGIN_TOP;
         m_shortCutRect[i].right = m_shortCutRect[i].left + m_shortcutWidth;
         m_shortCutRect[i].bottom = m_shortCutRect[i].top + m_shortcutHeight;
+        m_pShortCutManager->m_shortcutList[i]->UpdateState(ShortCutItem::SC_STATE_NORMAL);
     }
 
     for (int i = 0; i < shortCutNumber; i++)
@@ -125,6 +121,13 @@ void ShortCutLayout::LayOutShortCuts(const int &dockPanelWidth, const int &dockP
             m_shortCutRect[i].right - m_shortCutRect[i].left,
             m_shortCutRect[i].bottom - m_shortCutRect[i].top);
     }
+}
+
+
+void ShortCutLayout::LayOutShortCutsByShotCut(const int &dockPanelWidth, const int &dockPanelHeight, int short_cut_index)
+{
+    LayOutShortCuts(dockPanelWidth, dockPanelHeight);
+    m_pShortCutManager->m_shortcutList[short_cut_index]->UpdateState(ShortCutItem::SC_STATE_ROAMING, 1);
 }
 
 

@@ -24,8 +24,8 @@
 #include <commoncontrols.h>
 #include <objbase.h>
 #include <shlobj.h>
-#include <shfolder.h>
-#include <Winnls.h>
+//include <shfolder.h>
+//#include <Winnlsh>
 
 #include "global.h"
 
